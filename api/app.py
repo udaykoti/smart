@@ -18,6 +18,7 @@ app = Flask(
     static_folder=str(STATIC_FOLDER) if STATIC_FOLDER.exists() else None,
 )
 app.secret_key = 'smartlender-enterprise-2026'
+app.add_template_global(abs, name='abs')
 
 SCALER_PARAMS = json.loads((API_DIR / 'scaler_params.json').read_text())
 MEAN = SCALER_PARAMS['mean']

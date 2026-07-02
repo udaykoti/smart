@@ -75,6 +75,41 @@
     </main>
   </div>
 
+  <div class="notif-panel" :class="{ 'open': notifPanel }">
+    <div class="np-header">
+      <h4>Notifications</h4>
+      <button class="np-close" @click="notifPanel = false"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="np-body">
+      <div class="np-item">
+        <div class="np-icon np-green"><i class="fas fa-circle-check"></i></div>
+        <div class="np-content">
+          <span class="np-title">Prediction Completed</span>
+          <span class="np-desc">Loan eligibility prediction finished successfully</span>
+          <span class="np-time">Just now</span>
+        </div>
+      </div>
+      <div class="np-item">
+        <div class="np-icon np-blue"><i class="fas fa-rotate"></i></div>
+        <div class="np-content">
+          <span class="np-title">Model Updated</span>
+          <span class="np-desc">Random Forest model retrained with new data</span>
+          <span class="np-time">5 min ago</span>
+        </div>
+      </div>
+      <div class="np-item">
+        <div class="np-icon np-amber"><i class="fas fa-shield"></i></div>
+        <div class="np-content">
+          <span class="np-title">System Secure</span>
+          <span class="np-desc">All encryption protocols are active</span>
+          <span class="np-time">1 hour ago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" :class="{ 'show': notifPanel }" @click="notifPanel = false"></div>
+
   <div class="toast" x-show="toast.show" x-transition x-text="toast.message" :class="'toast-' + toast.type" x-cloak></div>
 
 <script>
