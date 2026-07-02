@@ -1,8 +1,3 @@
-*.csv
-*.json
-!scaler_params.json
-!xgboost_model.json
-!xgboost_native.json
 __pycache__/
 .pytest_cache/
 venv/
@@ -25,4 +20,6 @@ X_test.csv
 y_train.csv
 y_test.csv
 prediction_history.json
-app.py
+README.md
+.gitignore
+.python-version
