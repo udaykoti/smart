@@ -281,7 +281,8 @@ def predict():
 @app.route('/analytics')
 def analytics():
     stats = get_kpi_stats()
-    return render_template('analytics.html', stats=stats)
+    history = load_history()
+    return render_template('analytics.html', stats=stats, history=history)
 
 
 @app.route('/history')
