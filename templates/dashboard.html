@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - SmartLender{% endblock %}
+{% block content %}
+<h1>📊 Dashboard</h1>
+
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Predictions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.approved }}</div>
+        <div class="stat-label">Approved</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.rejected }}</div>
+        <div class="stat-label">Rejected</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.approval_rate }}%</div>
+        <div class="stat-label">Approval Rate</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.avg_confidence }}</div>
+        <div class="stat-label">Avg Confidence</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.avg_income }}</div>
+        <div class="stat-label">Avg Income</div>
+    </div>
+</div>
+
+<h2>Model Information</h2>
+<p><strong>Model:</strong> {{ stats.model_name }}</p>
+<p><strong>Accuracy:</strong> {{ stats.model_accuracy }}</p>
+
+<h2>Recent Predictions</h2>
+{% if recent %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Result</th>
+            <th>Probability</th>
+            <th>Risk Score</th>
+            <th>EMI</th>
+            <th>Timestamp</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in recent %}
+        <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.result }}</td>
+            <td>{{ item.probability }}</td>
+            <td>{{ item.risk_score }}</td>
+            <td>{{ item.emi }}</td>
+            <td>{{ item.timestamp }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No predictions yet. Start by making a prediction!</p>
+{% endif %}
+{% endblock %}

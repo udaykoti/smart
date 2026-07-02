@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Result - SmartLender{% endblock %}
+{% block content %}
+<h1>🎯 Prediction Result</h1>
+
+{% if result == 'Error' %}
+<div class="result rejected">
+    <h2>⚠️ Error</h2>
+    <p>{{ probability }}</p>
+</div>
+{% else %}
+<div class="result {% if result == 'Approved' %}approved{% else %}rejected{% endif %}">
+    <h2>{{ result }}</h2>
+    <p><strong>Probability:</strong> {{ probability }}</p>
+    <p><strong>Risk Score:</strong> {{ record.risk_score }}/100</p>
+    <p><strong>Estimated EMI:</strong> {{ record.emi }}</p>
+    <p><strong>Model Used:</strong> {{ record.model_used }}</p>
+    <p><strong>Model Accuracy:</strong> {{ model_info.accuracy }}</p>
+</div>
+
+<h2>Feature Importance</h2>
+{% if importance %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Feature</th>
+            <th>Importance</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for feature, value in importance.items() %}
+        <tr>
+            <td>{{ feature }}</td>
+            <td>{{ "%.4f" % value }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<h2>Insights & Analysis</h2>
+{% if insights %}
+<h3>Strengths</h3>
+<ul>
+    {% for strength in insights.strengths %}
+    <li>✅ {{ strength }}</li>
+    {% endfor %}
+</ul>
+
+<h3>Weaknesses</h3>
+<ul>
+    {% for weakness in insights.weaknesses %}
+    <li>⚠️ {{ weakness }}</li>
+    {% endfor %}
+</ul>
+
+<h3>Risk Factors</h3>
+<ul>
+    {% for factor in insights.factors %}
+    <li>{{ factor.name }} - <strong>{{ factor.impact }}</strong> impact - {% if factor.positive %}✅{% else %}❌{% endif %}</li>
+    {% endfor %}
+</ul>
+
+<p><strong>Default Risk:</strong> {{ insights.default_risk }}</p>
+{% endif %}
+
+<div style="margin-top: 30px;">
+    <a href="/predict-page"><button>Make Another Prediction</button></a>
+    <a href="/"><button>Back to Dashboard</button></a>
+</div>
+{% endif %}
+{% endblock %}
