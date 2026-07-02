@@ -1,20 +1,32 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import numpy as np
 import joblib
 import json
 import os
 from datetime import datetime
+from pathlib import Path
+import traceback
 
-app = Flask(__name__, template_folder='../templates', static_folder='../static')
+# Initialize Flask app
+app = Flask(__name__)
 app.secret_key = 'smartlender-enterprise-2026'
 
-# Load models and scaler from parent directory
-scaler = joblib.load('../scaler.pkl')
+# Get the project root directory
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-MODELS = {
-    'XGBoost': joblib.load('../xgboost_model.pkl'),
-}
+# Configure template and static folders with proper paths
+template_folder = BASE_DIR / 'templates'
+static_folder = BASE_DIR / 'static'
+
+# Update Flask config
+app.template_folder = str(template_folder)
+app.static_folder = str(static_folder)
+app.static_url_path = '/static'
+
+# Initialize model variables
+scaler = None
+MODELS = {}
 DEFAULT_MODEL = 'XGBoost'
 
 MODEL_INFO = {
@@ -33,7 +45,7 @@ EDU_MAP = {'Graduate': 1, 'Not Graduate': 0}
 SELF_EMP_MAP = {'Yes': 1, 'No': 0}
 AREA_MAP = {'Urban': 2, 'Semiurban': 1, 'Rural': 0}
 
-HISTORY_FILE = '../prediction_history.json'
+HISTORY_FILE = str(BASE_DIR / 'prediction_history.json')
 
 FEATURE_LABELS = {
     'Gender': 'Gender', 'Married': 'Marital Status', 'Dependents': 'Dependents',
@@ -43,17 +55,43 @@ FEATURE_LABELS = {
     'Credit_History': 'Credit History', 'Property_Area': 'Property Area'
 }
 
+def initialize_models():
+    """Load models on startup"""
+    global scaler, MODELS
+    try:
+        scaler_path = BASE_DIR / 'scaler.pkl'
+        model_path = BASE_DIR / 'xgboost_model.pkl'
+        
+        if scaler_path.exists():
+            scaler = joblib.load(str(scaler_path))
+        if model_path.exists():
+            MODELS['XGBoost'] = joblib.load(str(model_path))
+        
+        return True
+    except Exception as e:
+        print(f"Error loading models: {e}")
+        return False
+
 def load_history():
+    """Load prediction history from JSON file"""
     if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r') as f:
-            return json.load(f)
+        try:
+            with open(HISTORY_FILE, 'r') as f:
+                return json.load(f)
+        except:
+            return []
     return []
 
 def save_history(history):
-    with open(HISTORY_FILE, 'w') as f:
-        json.dump(history, f, indent=2)
+    """Save prediction history to JSON file"""
+    try:
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(history, f, indent=2)
+    except:
+        pass
 
 def get_kpi_stats():
+    """Calculate KPI statistics from history"""
     history = load_history()
     total = len(history)
     approved = sum(1 for h in history if h.get('result') == 'Approved')
@@ -76,6 +114,7 @@ def get_kpi_stats():
     }
 
 def get_feature_importance(raw_data):
+    """Calculate feature importance scores"""
     importance = {
         'Credit History': 0.35 if raw_data.get('Credit_History', 0) == 1 else -0.25,
         'Applicant Income': 0.15 * min(raw_data.get('ApplicantIncome', 0) / 15000, 1),
@@ -91,6 +130,7 @@ def get_feature_importance(raw_data):
     return dict(sorted(importance.items(), key=lambda x: abs(x[1]), reverse=True))
 
 def generate_insights(raw_data, result, prob):
+    """Generate detailed insights from prediction"""
     strengths = []
     weaknesses = []
     if raw_data.get('Credit_History') == 1:
@@ -140,22 +180,87 @@ def generate_insights(raw_data, result, prob):
         ]
     }
 
+# Routes
+
+@app.route('/api/health')
+def health():
+    """Health check endpoint - should always work"""
+    models_loaded = len(MODELS) > 0 and scaler is not None
+    return jsonify({
+        'status': 'ok',
+        'version': '1.0.0',
+        'models_loaded': models_loaded,
+        'template_folder_exists': template_folder.exists(),
+        'static_folder_exists': static_folder.exists()
+    })
+
 @app.route('/')
-def dashboard():
-    stats = get_kpi_stats()
-    history = load_history()[-5:]
-    return render_template('dashboard.html', stats=stats, recent=history)
+def index():
+    """Root endpoint - returns health info if templates not available"""
+    try:
+        if template_folder.exists():
+            stats = get_kpi_stats()
+            history = load_history()[-5:]
+            return render_template('dashboard.html', stats=stats, recent=history)
+        else:
+            return jsonify({
+                'message': 'Smart Lender API is running',
+                'endpoints': {
+                    '/api/health': 'Health check',
+                    '/api/stats': 'Get statistics',
+                    '/api/history': 'Get prediction history'
+                }
+            })
+    except Exception as e:
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
+
+@app.route('/api/stats', methods=['GET'])
+def api_stats():
+    """API endpoint for statistics"""
+    try:
+        return jsonify(get_kpi_stats())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/history', methods=['GET'])
+def api_history():
+    """API endpoint for prediction history"""
+    try:
+        return jsonify(load_history())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/delete/<record_id>', methods=['POST'])
+def delete_record(record_id):
+    """Delete a prediction record"""
+    try:
+        history = load_history()
+        history = [h for h in history if h.get('id') != record_id]
+        save_history(history)
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/predict-page')
 def predict_page():
-    history = load_history()
-    last_model = history[-1].get('model_used', DEFAULT_MODEL) if history else DEFAULT_MODEL
-    model_info = MODEL_INFO.get(last_model, MODEL_INFO[DEFAULT_MODEL])
-    return render_template('predict.html', model_info=model_info)
+    """Prediction form page"""
+    try:
+        if template_folder.exists():
+            history = load_history()
+            last_model = history[-1].get('model_used', DEFAULT_MODEL) if history else DEFAULT_MODEL
+            model_info = MODEL_INFO.get(last_model, MODEL_INFO[DEFAULT_MODEL])
+            return render_template('predict.html', model_info=model_info)
+        return jsonify({'message': 'Templates not deployed'}), 503
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    """Process prediction request"""
     try:
+        if not MODELS or scaler is None:
+            return jsonify({'error': 'Models not loaded'}), 503
+            
         loan_amt_raw = float(request.form['LoanAmount'])
         if loan_amt_raw > 1000:
             loan_amt_raw = loan_amt_raw / 1000
@@ -216,47 +321,16 @@ def predict():
 
         model_info = MODEL_INFO.get(model_name, MODEL_INFO[DEFAULT_MODEL])
 
-        return render_template('result.html', result=result, probability=f'{prob:.1%}',
-                             record=record, importance=importance, insights=insights, model_info=model_info)
+        if template_folder.exists():
+            return render_template('result.html', result=result, probability=f'{prob:.1%}',
+                                 record=record, importance=importance, insights=insights, model_info=model_info)
+        else:
+            return jsonify({'result': result, 'probability': f'{prob:.1%}', 'record': record})
     except Exception as e:
-        return render_template('result.html', result='Error', probability=str(e),
-                             record={}, importance={}, insights={'strengths':[], 'weaknesses':[]},
-                             model_info=MODEL_INFO[DEFAULT_MODEL])
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
 
-@app.route('/analytics')
-def analytics():
-    return render_template('analytics.html')
-
-@app.route('/history')
-def history():
-    records = load_history()
-    records.reverse()
-    return render_template('history.html', records=records)
-
-@app.route('/insights')
-def insights():
-    records = load_history()
-    last = records[-1] if records else None
-    importance = get_feature_importance(last.get('form_data', {})) if last else {}
-    insight_data = generate_insights(last.get('form_data', {}), last.get('result', ''), last.get('confidence', 0)) if last else {'strengths':[], 'weaknesses':[]}
-    model_name = last.get('model_used', DEFAULT_MODEL) if last else DEFAULT_MODEL
-    model_info = MODEL_INFO.get(model_name, MODEL_INFO[DEFAULT_MODEL])
-    return render_template('insights.html', last=last, importance=importance, insights=insight_data, model_info=model_info)
-
-@app.route('/api/history', methods=['GET'])
-def api_history():
-    return jsonify(load_history())
-
-@app.route('/api/stats', methods=['GET'])
-def api_stats():
-    return jsonify(get_kpi_stats())
-
-@app.route('/api/delete/<record_id>', methods=['POST'])
-def delete_record(record_id):
-    history = load_history()
-    history = [h for h in history if h.get('id') != record_id]
-    save_history(history)
-    return jsonify({'success': True})
+# Initialize models when app starts
+initialize_models()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
