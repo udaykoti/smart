@@ -39,6 +39,18 @@ SELF_EMP_MAP = {'Yes': 1, 'No': 0}
 AREA_MAP = {'Urban': 2, 'Semiurban': 1, 'Rural': 0}
 
 HISTORY_FILE = '/tmp/prediction_history.json'
+
+# Migrate old USD records to INR
+if os.path.exists(HISTORY_FILE):
+    try:
+        with open(HISTORY_FILE, 'r') as f:
+            raw = f.read()
+        if '$' in raw:
+            raw = raw.replace('$', '₹')
+            with open(HISTORY_FILE, 'w') as f:
+                f.write(raw)
+    except Exception:
+        pass
 DEFAULT_MODEL = 'XGBoost'
 MODEL_INFO = {'XGBoost': {'name': 'XGBoost Classifier', 'accuracy': '86.2%'}}
 
