@@ -75,8 +75,8 @@ def get_kpi_stats():
         'total': total, 'approved': approved, 'rejected': rejected,
         'approval_rate': f'{approval_rate:.1f}',
         'avg_confidence': f'{avg_conf:.1%}' if history else '0%',
-        'avg_income': f'${avg_income:,.0f}' if history else '$0',
-        'avg_loan': f'${avg_loan:,.0f}' if history else '$0',
+        'avg_income': f'₹{avg_income:,.0f}' if history else '₹0',
+        'avg_loan': f'₹{avg_loan:,.0f}' if history else '₹0',
         'model_accuracy': model_info['accuracy'], 'model_name': last_model
     }
 
@@ -119,9 +119,9 @@ def generate_insights(raw_data, result, prob):
     else:
         weaknesses.append('Poor credit history is the primary risk factor')
     if raw_data.get('ApplicantIncome', 0) > 5000:
-        strengths.append(f'Good income level (${raw_data["ApplicantIncome"]:,.0f}/year)')
+        strengths.append(f'Good income level (₹{raw_data["ApplicantIncome"]:,.0f}/year)')
     else:
-        weaknesses.append(f'Income (${raw_data["ApplicantIncome"]:,.0f}/year) is below average')
+        weaknesses.append(f'Income (₹{raw_data["ApplicantIncome"]:,.0f}/year) is below average')
     if raw_data.get('LoanAmount', 0) < 200:
         strengths.append('Conservative loan amount relative to income')
     else:
@@ -150,7 +150,7 @@ def generate_insights(raw_data, result, prob):
 
     return {
         'strengths': strengths, 'weaknesses': weaknesses,
-        'risk_score': risk_score, 'estimated_emi': f'${emi:,.2f}',
+        'risk_score': risk_score, 'estimated_emi': f'₹{emi:,.2f}',
         'default_risk': f'{(1 - prob) * 100:.1f}%',
         'factors': [
             {'name': 'Credit History', 'impact': 'high', 'positive': raw_data.get('Credit_History') == 1},
@@ -262,7 +262,7 @@ def predict():
     except Exception as e:
         return render_template('result.html', result='Error', probability=str(e),
                                record={'timestamp': ''}, importance={},
-                               insights={'strengths': [], 'weaknesses': [], 'risk_score': 0, 'estimated_emi': '$0.00', 'default_risk': '0%', 'factors': []},
+                               insights={'strengths': [], 'weaknesses': [], 'risk_score': 0, 'estimated_emi': '₹0.00', 'default_risk': '0%', 'factors': []},
                                model_info=MODEL_INFO[DEFAULT_MODEL])
 
 

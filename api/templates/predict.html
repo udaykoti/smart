@@ -75,11 +75,11 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Applicant Income ($)</label>
+            <label class="form-label">Applicant Income (₹)</label>
             <input class="form-input" type="number" name="ApplicantIncome" min="0" placeholder="e.g. 5000" required x-model="form.ApplicantIncome">
           </div>
           <div class="form-group">
-            <label class="form-label">Coapplicant Income ($)</label>
+            <label class="form-label">Coapplicant Income (₹)</label>
             <input class="form-input" type="number" name="CoapplicantIncome" min="0" placeholder="e.g. 2000" required x-model="form.CoapplicantIncome">
           </div>
         </div>
@@ -88,7 +88,7 @@
       <div class="wizard-body" :class="{ 'active': currentStep === 2 }">
         <div class="form-grid-2">
           <div class="form-group">
-            <label class="form-label">Loan Amount ($)</label>
+            <label class="form-label">Loan Amount (₹)</label>
             <input class="form-input" type="number" name="LoanAmount" min="0" placeholder="e.g. 150" required x-model="form.LoanAmount">
           </div>
           <div class="form-group">
@@ -124,9 +124,9 @@
             <div class="result-detail-item"><span class="rd-label">Dependents</span><span class="rd-value" x-text="form.Dependents"></span></div>
             <div class="result-detail-item"><span class="rd-label">Education</span><span class="rd-value" x-text="form.Education"></span></div>
             <div class="result-detail-item"><span class="rd-label">Self Employed</span><span class="rd-value" x-text="form.Self_Employed"></span></div>
-            <div class="result-detail-item"><span class="rd-label">Income</span><span class="rd-value" x-text="'$' + form.ApplicantIncome"></span></div>
-            <div class="result-detail-item"><span class="rd-label">Coapplicant</span><span class="rd-value" x-text="'$' + form.CoapplicantIncome"></span></div>
-            <div class="result-detail-item"><span class="rd-label">Loan Amount</span><span class="rd-value" x-text="'$' + form.LoanAmount"></span></div>
+            <div class="result-detail-item"><span class="rd-label">Income</span><span class="rd-value" x-text="'₹' + form.ApplicantIncome"></span></div>
+            <div class="result-detail-item"><span class="rd-label">Coapplicant</span><span class="rd-value" x-text="'₹' + form.CoapplicantIncome"></span></div>
+            <div class="result-detail-item"><span class="rd-label">Loan Amount</span><span class="rd-value" x-text="'₹' + form.LoanAmount"></span></div>
             <div class="result-detail-item"><span class="rd-label">Loan Term</span><span class="rd-value" x-text="form.Loan_Amount_Term + ' days'"></span></div>
             <div class="result-detail-item"><span class="rd-label">Credit History</span><span class="rd-value" x-text="form.Credit_History === '1' ? 'Good' : 'Poor'"></span></div>
             <div class="result-detail-item"><span class="rd-label">Property Area</span><span class="rd-value" x-text="form.Property_Area"></span></div>
