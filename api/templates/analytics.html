@@ -1,24 +1,107 @@
 {% extends 'base.html' %}
+{% set active_page = 'analytics' %}
 {% block title %}Analytics - SmartLender{% endblock %}
+{% block heading %}Analytics{% endblock %}
 {% block content %}
-<h1>📈 Analytics</h1>
-<p>Comprehensive analytics of loan predictions.</p>
+<div class="animate-slide-up">
+  <div style="margin-bottom:24px;">
+    <div class="section-title">Analytics Dashboard</div>
+    <div class="section-subtitle">Comprehensive analysis of loan predictions and model performance.</div>
+  </div>
 
-<div class="stats">
-    <div class="stat-card">
-        <div class="stat-value">📊</div>
-        <div class="stat-label">Advanced Analytics Coming Soon</div>
+  <div class="stats-grid">
+    <div class="glass-card stat-item">
+      <div class="stat-value" style="color:var(--accent);">{{ stats.total }}</div>
+      <div class="stat-label">Total Predictions</div>
     </div>
+    <div class="glass-card stat-item">
+      <div class="stat-value" style="color:var(--success);">{{ stats.approval_rate }}%</div>
+      <div class="stat-label">Approval Rate</div>
+    </div>
+    <div class="glass-card stat-item">
+      <div class="stat-value" style="color:var(--danger);">{{ stats.rejected }}</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+    <div class="glass-card stat-item">
+      <div class="stat-value" style="color:var(--accent);">{{ stats.model_accuracy }}</div>
+      <div class="stat-label">Model Accuracy</div>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="glass-card analytics-full">
+      <div class="glass-card-header">
+        <div class="glass-card-title"><i class="fas fa-chart-pie"></i> Loan Status Distribution</div>
+      </div>
+      <div class="chart-container">
+        <canvas id="statusChart" height="100"></canvas>
+      </div>
+    </div>
+    <div class="glass-card analytics-full">
+      <div class="glass-card-header">
+        <div class="glass-card-title"><i class="fas fa-arrow-trend-up"></i> Prediction Trend</div>
+      </div>
+      <div style="text-align:center;padding:40px;color:var(--text-tertiary);">
+        <i class="fas fa-chart-line" style="font-size:48px;opacity:0.3;margin-bottom:12px;"></i>
+        <p>Make predictions to see trend data.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="glass-card">
+      <div class="glass-card-header">
+        <div class="glass-card-title"><i class="fas fa-flask"></i> Model Performance</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" style="color:var(--success);font-size:22px;">{{ stats.model_accuracy }}</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color:var(--accent);font-size:22px;">{{ stats.model_name }}</div>
+          <div class="stat-label">Active Model</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color:var(--accent);font-size:22px;">Random Forest</div>
+          <div class="stat-label">Algorithm</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" style="color:var(--accent);font-size:22px;">11</div>
+          <div class="stat-label">Features</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<h2>Features</h2>
-<ul>
-    <li>Prediction trends over time</li>
-    <li>Approval rate analysis</li>
-    <li>Risk distribution analysis</li>
-    <li>Feature correlation analysis</li>
-    <li>Model performance metrics</li>
-</ul>
-
-<p><a href="/history"><button>View Full History</button></a></p>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const ctx = document.getElementById('statusChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Approved', 'Rejected'],
+        datasets: [{
+          data: [{{ stats.approved }}, {{ stats.rejected }}],
+          backgroundColor: ['#10B981', '#EF4444'],
+          borderWidth: 0,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#94A3B8', padding: 16, font: { family: 'Inter', size: 12 } }
+          }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+});
+</script>
 {% endblock %}

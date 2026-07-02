@@ -1,42 +1,86 @@
 {% extends 'base.html' %}
+{% set active_page = 'history' %}
 {% block title %}History - SmartLender{% endblock %}
+{% block heading %}Prediction History{% endblock %}
 {% block content %}
-<h1>📋 Prediction History</h1>
+<div x-data="{ search: '' }" class="animate-slide-up">
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+    <div>
+      <div class="section-subtitle">Review all past loan predictions.</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <a href="/predict-page" class="btn btn-primary"><i class="fas fa-plus"></i> New Prediction</a>
+    </div>
+  </div>
 
-{% if records %}
-<table class="table">
-    <thead>
-        <tr>
+  {% set total = records|length %}
+  {% set approved = records|selectattr('result', 'equalto', 'Approved')|list|length %}
+  {% set rejected = records|selectattr('result', 'equalto', 'Rejected')|list|length %}
+
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div class="glass-card" style="padding:14px 24px;display:flex;align-items:center;gap:12px;">
+      <span class="badge badge-accent" style="font-size:16px;padding:6px 14px;">{{ total }}</span>
+      <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">Total</span>
+    </div>
+    <div class="glass-card" style="padding:14px 24px;display:flex;align-items:center;gap:12px;">
+      <span class="badge badge-success" style="font-size:16px;padding:6px 14px;">{{ approved }}</span>
+      <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">Approved</span>
+    </div>
+    <div class="glass-card" style="padding:14px 24px;display:flex;align-items:center;gap:12px;">
+      <span class="badge badge-danger" style="font-size:16px;padding:6px 14px;">{{ rejected }}</span>
+      <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">Rejected</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-search">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search by ID or result..." x-model="search">
+    </div>
+  </div>
+
+  <div class="glass-card">
+    {% if records %}
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
             <th>ID</th>
             <th>Result</th>
             <th>Probability</th>
             <th>Risk Score</th>
             <th>EMI</th>
             <th>Income</th>
-            <th>Loan Amount</th>
+            <th>Loan</th>
             <th>Model</th>
             <th>Timestamp</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for record in records %}
-        <tr>
-            <td>{{ record.id }}</td>
-            <td><strong>{{ record.result }}</strong></td>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          <tr x-show="!search || '{{ record.id }} {{ record.result }} {{ record.model_used }}'.toLowerCase().includes(search.toLowerCase())">
+            <td><span class="badge badge-accent">{{ record.id }}</span></td>
+            <td><span class="badge {% if record.result == 'Approved' %}badge-success{% else %}badge-danger{% endif %}">{{ record.result }}</span></td>
             <td>{{ record.probability }}</td>
             <td>{{ record.risk_score }}</td>
             <td>{{ record.emi }}</td>
             <td>${{ record.income }}</td>
             <td>${{ record.loan_amount }}</td>
             <td>{{ record.model_used }}</td>
-            <td>{{ record.timestamp }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No prediction history yet. Make a prediction to get started!</p>
-{% endif %}
-
-<p><a href="/predict-page"><button>Make a Prediction</button></a></p>
+            <td style="font-size:12px;">{{ record.timestamp[:19] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-clock-rotate"></i>
+      <h3>No history yet</h3>
+      <p>Make a prediction to see your history here.</p>
+      <a href="/predict-page" class="btn btn-primary btn-lg"><i class="fas fa-wand-magic-sparkles"></i> Make a Prediction</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
 {% endblock %}

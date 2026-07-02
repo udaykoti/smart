@@ -1,72 +1,110 @@
 {% extends 'base.html' %}
+{% set active_page = 'predict' %}
 {% block title %}Result - SmartLender{% endblock %}
+{% block heading %}Prediction Result{% endblock %}
 {% block content %}
-<h1>🎯 Prediction Result</h1>
+<div class="result-container animate-slide-up" x-data="{ showDetails: false }">
+  {% if result == 'Error' %}
+  <div class="glass-card result-error">
+    <div class="result-icon"><i class="fas fa-triangle-exclamation"></i></div>
+    <div class="result-title">Error</div>
+    <div class="result-subtitle">{{ probability }}</div>
+    <div class="result-actions">
+      <a href="/predict-page" class="btn btn-primary btn-lg"><i class="fas fa-arrow-left"></i> Try Again</a>
+    </div>
+  </div>
+  {% else %}
+  <div class="glass-card {% if result == 'Approved' %}result-approved{% else %}result-rejected{% endif %}">
+    <div class="result-icon">
+      <i class="fas {% if result == 'Approved' %}fa-circle-check{% else %}fa-circle-xmark{% endif %}"></i>
+    </div>
+    <div class="result-title">{{ result }}</div>
+    <div class="result-subtitle">AI-powered loan eligibility assessment</div>
 
-{% if result == 'Error' %}
-<div class="result rejected">
-    <h2>⚠️ Error</h2>
-    <p>{{ probability }}</p>
-</div>
-{% else %}
-<div class="result {% if result == 'Approved' %}approved{% else %}rejected{% endif %}">
-    <h2>{{ result }}</h2>
-    <p><strong>Probability:</strong> {{ probability }}</p>
-    <p><strong>Risk Score:</strong> {{ record.risk_score }}/100</p>
-    <p><strong>Estimated EMI:</strong> {{ record.emi }}</p>
-    <p><strong>Model Used:</strong> {{ record.model_used }}</p>
-    <p><strong>Model Accuracy:</strong> {{ model_info.accuracy }}</p>
-</div>
+    <div class="confidence-meter">
+      <div class="confidence-label">
+        <span>Confidence Score</span>
+        <span>{{ probability }}</span>
+      </div>
+      <div class="confidence-track">
+        <div class="confidence-fill {% if record.confidence > 0.7 %}cf-high{% elif record.confidence > 0.4 %}cf-medium{% else %}cf-low{% endif %}" style="width:{{ (record.confidence * 100)|round }}%"></div>
+      </div>
+    </div>
 
-<h2>Feature Importance</h2>
-{% if importance %}
-<table class="table">
-    <thead>
-        <tr>
-            <th>Feature</th>
-            <th>Importance</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for feature, value in importance.items() %}
-        <tr>
-            <td>{{ feature }}</td>
-            <td>{{ "%.4f" % value }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% endif %}
+    <div class="result-details">
+      <div class="result-detail-item">
+        <span class="rd-label">Risk Score</span>
+        <span class="rd-value {% if record.risk_score < 30 %}risk-low{% elif record.risk_score < 60 %}risk-medium{% else %}risk-high{% endif %}">{{ record.risk_score }}/100</span>
+      </div>
+      <div class="result-detail-item">
+        <span class="rd-label">Estimated EMI</span>
+        <span class="rd-value">{{ record.emi }}</span>
+      </div>
+      <div class="result-detail-item">
+        <span class="rd-label">Model</span>
+        <span class="rd-value">{{ record.model_used }}</span>
+      </div>
+      <div class="result-detail-item">
+        <span class="rd-label">Model Accuracy</span>
+        <span class="rd-value" style="color:var(--success);">{{ model_info.accuracy }}</span>
+      </div>
+    </div>
 
-<h2>Insights & Analysis</h2>
-{% if insights %}
-<h3>Strengths</h3>
-<ul>
-    {% for strength in insights.strengths %}
-    <li>✅ {{ strength }}</li>
+    <div class="result-actions">
+      <a href="/predict-page" class="btn btn-primary"><i class="fas fa-rotate-left"></i> New Prediction</a>
+      <a href="/" class="btn btn-secondary"><i class="fas fa-th-large"></i> Dashboard</a>
+      <button class="btn btn-ghost" @click="showDetails = !showDetails">
+        <i class="fas fa-chart-simple"></i> <span x-text="showDetails ? 'Hide Details' : 'Show Details'"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="glass-card" style="margin-top:16px;" x-show="showDetails" x-transition>
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fas fa-chart-simple"></i> Feature Importance</div>
+    </div>
+    {% if importance %}
+    {% for feature, value in importance.items() %}
+    <div class="feature-bar">
+      <span class="feature-name">{{ feature }}</span>
+      <div class="feature-track">
+        <div class="feature-fill {% if value >= 0 %}ff-positive{% else %}ff-negative{% endif %}" style="width:{{ (abs(value) * 100)|round }}%"></div>
+      </div>
+      <span class="feature-value {% if value >= 0 %}fv-positive{% else %}fv-negative{% endif %}">{{ "%.4f" % value }}</span>
+    </div>
     {% endfor %}
-</ul>
+    {% endif %}
+  </div>
 
-<h3>Weaknesses</h3>
-<ul>
-    {% for weakness in insights.weaknesses %}
-    <li>⚠️ {{ weakness }}</li>
-    {% endfor %}
-</ul>
-
-<h3>Risk Factors</h3>
-<ul>
-    {% for factor in insights.factors %}
-    <li>{{ factor.name }} - <strong>{{ factor.impact }}</strong> impact - {% if factor.positive %}✅{% else %}❌{% endif %}</li>
-    {% endfor %}
-</ul>
-
-<p><strong>Default Risk:</strong> {{ insights.default_risk }}</p>
-{% endif %}
-
-<div style="margin-top: 30px;">
-    <a href="/predict-page"><button>Make Another Prediction</button></a>
-    <a href="/"><button>Back to Dashboard</button></a>
+  <div class="glass-card" style="margin-top:16px;" x-show="showDetails" x-transition>
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fas fa-lightbulb"></i> AI Insights</div>
+    </div>
+    {% if insights %}
+    {% if insights.strengths %}
+    <div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:var(--success);margin-bottom:8px;"><i class="fas fa-circle-check"></i> Strengths</div>
+      {% for strength in insights.strengths %}
+      <div class="insight-item insight-positive"><i class="fas fa-plus-circle"></i> {{ strength }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if insights.weaknesses %}
+    <div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:700;color:var(--danger);margin-bottom:8px;"><i class="fas fa-circle-exclamation"></i> Weaknesses</div>
+      {% for weakness in insights.weaknesses %}
+      <div class="insight-item insight-negative"><i class="fas fa-minus-circle"></i> {{ weakness }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="result-details" style="margin-top:12px;">
+      <div class="result-detail-item">
+        <span class="rd-label">Default Risk</span>
+        <span class="rd-value {% if insights.default_risk < '30%' %}risk-low{% elif insights.default_risk < '60%' %}risk-medium{% else %}risk-high{% endif %}">{{ insights.default_risk }}</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
 </div>
-{% endif %}
 {% endblock %}
