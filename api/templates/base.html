@@ -63,7 +63,7 @@
         <button class="topbar-btn" @click="theme = theme === 'dark' ? 'light' : 'dark'; $dispatch('theme-change', theme)" :title="theme === 'dark' ? 'Light mode' : 'Dark mode'">
           <i :class="theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon'"></i>
         </button>
-        <button class="topbar-btn" @click="notifPanel = !notifPanel">
+        <button class="topbar-btn" id="notifBtn" onclick="toggleNotifPanel()">
           <i class="fas fa-bell"></i>
           <span class="topbar-dot"></span>
         </button>
@@ -75,10 +75,10 @@
     </main>
   </div>
 
-  <div class="notif-panel" :class="{ 'open': notifPanel }">
+  <div class="notif-panel" id="notifPanel">
     <div class="np-header">
       <h4>Notifications</h4>
-      <button class="np-close" @click="notifPanel = false"><i class="fas fa-xmark"></i></button>
+      <button class="np-close" onclick="toggleNotifPanel()"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="np-body">
       <div class="np-item">
@@ -108,16 +108,20 @@
     </div>
   </div>
 
-  <div class="panel-overlay" :class="{ 'show': notifPanel }" @click="notifPanel = false"></div>
+  <div class="panel-overlay" id="notifOverlay" onclick="toggleNotifPanel()"></div>
 
   <div class="toast" x-show="toast.show" x-transition x-text="toast.message" :class="'toast-' + toast.type" x-cloak></div>
 
 <script>
+function toggleNotifPanel() {
+  document.getElementById('notifPanel').classList.toggle('open');
+  document.getElementById('notifOverlay').classList.toggle('show');
+}
+
 function app() {
   return {
     sidebarOpen: false,
     theme: localStorage.getItem('sl-theme') || 'dark',
-    notifPanel: false,
     toast: { show: false, message: '', type: 'success' },
     init() {
       document.documentElement.setAttribute('data-theme', this.theme);
