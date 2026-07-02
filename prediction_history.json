@@ -1,0 +1,54 @@
+[
+  {
+    "id": "SL-20260701195723",
+    "timestamp": "2026-07-01T19:57:23.604597",
+    "result": "Rejected",
+    "probability": "26.5%",
+    "confidence": 0.2650010883808136,
+    "risk_score": 73,
+    "emi": "$1,611.50",
+    "model_used": "XGBoost",
+    "income": 70000.0,
+    "loan_amount": 190.0,
+    "applicant": "Applicant 19:57",
+    "form_data": {
+      "Gender": "Male",
+      "Married": "Yes",
+      "Dependents": "0",
+      "Education": "Graduate",
+      "Self_Employed": "Yes",
+      "ApplicantIncome": 70000.0,
+      "CoapplicantIncome": 8000.0,
+      "LoanAmount": 190.0,
+      "Loan_Amount_Term": 360.0,
+      "Credit_History": 1,
+      "Property_Area": "Urban"
+    }
+  },
+  {
+    "id": "SL-20260701195842",
+    "timestamp": "2026-07-01T19:58:42.128413",
+    "result": "Approved",
+    "probability": "76.1%",
+    "confidence": 0.7605045052350821,
+    "risk_score": 23,
+    "emi": "$1,611.50",
+    "model_used": "LightGBM",
+    "income": 5000.0,
+    "loan_amount": 190.0,
+    "applicant": "Applicant 19:58",
+    "form_data": {
+      "Gender": "Male",
+      "Married": "Yes",
+      "Dependents": "0",
+      "Education": "Graduate",
+      "Self_Employed": "No",
+      "ApplicantIncome": 5000.0,
+      "CoapplicantIncome": 8000.0,
+      "LoanAmount": 190.0,
+      "Loan_Amount_Term": 360.0,
+      "Credit_History": 1,
+      "Property_Area": "Urban"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+applications:
+- name: smart-lender
+  memory: 256M
+  instances: 1
+  buildpacks:
+  - python_buildpack
+  command: gunicorn app:app --bind 0.0.0.0:$PORT
