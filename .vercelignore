@@ -12,7 +12,7 @@ preprocessing.py
 manifest.yml
 Procfile
 lightgbm_model.pkl
-random_forest_model.pkl
+/random_forest_model.pkl
 svm_model.pkl
 loan_data.csv
 X_train.csv
@@ -20,6 +20,4 @@ X_test.csv
 y_train.csv
 y_test.csv
 prediction_history.json
-README.md
-.gitignore
-.python-version
+/app.py
